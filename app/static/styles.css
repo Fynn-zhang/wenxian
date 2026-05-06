@@ -110,7 +110,7 @@ textarea {
 }
 
 .panel,
-.paper-item {
+paper-item {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -278,7 +278,7 @@ form,
 
 .translation-actions {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
