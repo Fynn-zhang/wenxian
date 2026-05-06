@@ -9,7 +9,17 @@ python -m pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
 
-在 `.env` 中填入 `OPENAI_API_KEY`。如果不填写，应用仍可导入 PDF、编辑翻译和导出 Markdown，但不能自动翻译或生成解释。
+默认使用 DeepSeek API。在 `.env` 中填入 `DEEPSEEK_API_KEY`：
+
+```env
+AI_PROVIDER=deepseek
+DEEPSEEK_API_KEY=你的DeepSeekKey
+DEEPSEEK_MODEL=deepseek-chat
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+```
+
+如果要切回 OpenAI，把 `AI_PROVIDER` 改成 `openai`，并填入 `OPENAI_API_KEY`。
+如果不填写 API key，应用仍可导入 PDF、编辑翻译和导出 Markdown，但不能自动翻译或生成解释。
 
 ## 运行
 
