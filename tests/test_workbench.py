@@ -52,6 +52,17 @@ def test_remove_page_notes_drops_footnotes_and_reference_snippets() -> None:
     assert "Reference text" not in cleaned
 
 
+def test_normalize_pdf_line_breaks_joins_soft_breaks_and_hyphenation() -> None:
+    text = "Encapsulated Solute Leakage in\nAnhydrobiotic Preservation and glycero-\nphosphocholine vesicles"
+
+    normalized = pdf_import.normalize_pdf_line_breaks(text)
+
+    assert normalized == (
+        "Encapsulated Solute Leakage in Anhydrobiotic Preservation "
+        "and glycerophosphocholine vesicles"
+    )
+
+
 def test_split_paragraphs_merges_short_blocks() -> None:
     text = (
         "Long enough first paragraph with enough context.\n\n"
