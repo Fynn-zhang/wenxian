@@ -186,10 +186,38 @@ def translate_next_batch(paper_id: int, limit: int = 5) -> dict:
     return {"translated": translated, "failed": failed, "errors": errors}
 
 
+@app.post("/api/paragraphs/{paragraph_id}/translate")
+def translate_single_paragraph(paragraph_id: int) -> dict:
+    with get_db() as conn:
+        row = conn.execute("SELECT * FROM paragraphs WHERE id = ?", (paragraph_id,)).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Paragraph not found.")
+    item = row_to_dict(row)
+    if item["extraction_status"] != "ok":
+        raise HTTPException(status_code=400, detail="该段没有可复制正文，不能自动翻译。")
+    try:
+        result = translate_paragraph(item["source_text"])
+    except AIUnavailable as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    text = result.get("translation", "")
+    with get_db() as conn:
+        conn.execute(
+            """
+            UPDATE paragraphs
+            SET translation_text = ?, translation_status = 'translated', updated_at = ?
+            WHERE id = ?
+            """,
+            (text, now_iso(), paragraph_id),
+        )
+    return {"translation_text": text, "translation_status": "translated"}
+
+
 @app.patch("/api/paragraphs/{paragraph_id}")
 def update_paragraph(paragraph_id: int, payload: TranslationUpdate) -> dict:
     if payload.translation_status not in {"pending", "translated", "confirmed", "failed"}:
         raise HTTPException(status_code=400, detail="Invalid translation status.")
+    if payload.translation_status == "confirmed" and not payload.translation_text.strip():
+        raise HTTPException(status_code=400, detail="翻译内容为空，不能确认。请先重新翻译或手动填写。")
     with get_db() as conn:
         conn.execute(
             """
