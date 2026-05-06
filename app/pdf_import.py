@@ -17,6 +17,8 @@ FOOTNOTE_START_PATTERNS = (
     re.compile(r"^[†‡]\s+"),
 )
 REFERENCE_START_PATTERN = re.compile(r"^\(\d+\)\s+\S")
+WORD_BREAK_PATTERN = re.compile(r"(?<=[A-Za-z])-\s*\n\s*(?=[A-Za-z])")
+SOFT_LINEBREAK_PATTERN = re.compile(r"(?<!\n)\n(?!\n)")
 
 
 def remove_page_notes(text: str) -> str:
@@ -41,7 +43,7 @@ def split_paragraphs(text: str) -> list[str]:
     paragraphs: list[str] = []
     buffer = ""
     for block in blocks:
-        compact = re.sub(r"[ \t]+", " ", block)
+        compact = normalize_pdf_line_breaks(block)
         if len(compact) < MIN_PARAGRAPH_CHARS and buffer:
             buffer = f"{buffer} {compact}".strip()
             continue
@@ -51,8 +53,14 @@ def split_paragraphs(text: str) -> list[str]:
     if buffer:
         paragraphs.append(buffer)
     if not paragraphs and normalized.strip():
-        paragraphs = [re.sub(r"[ \t]+", " ", normalized.strip())]
+        paragraphs = [normalize_pdf_line_breaks(normalized.strip())]
     return paragraphs
+
+
+def normalize_pdf_line_breaks(text: str) -> str:
+    text = WORD_BREAK_PATTERN.sub("", text)
+    text = SOFT_LINEBREAK_PATTERN.sub(" ", text)
+    return re.sub(r"\s+", " ", text).strip()
 
 
 def extract_pdf_paragraphs(pdf_path: Path) -> tuple[list[dict], int]:
