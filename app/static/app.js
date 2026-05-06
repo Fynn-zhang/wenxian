@@ -135,6 +135,7 @@ function renderPaper() {
               <textarea data-translation-id="${p.id}">${escapeHtml(p.translation_text || "")}</textarea>
               <div class="translation-actions">
                 <button class="save-translation" data-paragraph-id="${p.id}">确认/保存翻译</button>
+                <button class="retranslate-translation secondary" data-paragraph-id="${p.id}" type="button">重新翻译本段</button>
                 <button class="restore-translation secondary" data-paragraph-id="${p.id}" type="button">恢复已保存翻译</button>
               </div>
             </div>
@@ -242,10 +243,31 @@ readingRows.addEventListener("click", async (event) => {
     return;
   }
 
+  const retranslateButton = event.target.closest(".retranslate-translation");
+  if (retranslateButton) {
+    const paragraphId = Number(retranslateButton.dataset.paragraphId);
+    retranslateButton.disabled = true;
+    setStatus("正在重新翻译本段...");
+    try {
+      await api(`/api/paragraphs/${paragraphId}/translate`, { method: "POST" });
+      await loadPaper(currentPaperId);
+      setStatus("本段已重新翻译，检查后可确认保存。");
+    } catch (error) {
+      setStatus(`重新翻译失败：${error.message}`);
+    } finally {
+      retranslateButton.disabled = false;
+    }
+    return;
+  }
+
   const button = event.target.closest(".save-translation");
   if (!button) return;
   const paragraphId = Number(button.dataset.paragraphId);
   const textarea = readingRows.querySelector(`[data-translation-id="${paragraphId}"]`);
+  if (!textarea.value.trim()) {
+    setStatus("翻译内容为空，不能确认。请先点击“重新翻译本段”或手动填写。");
+    return;
+  }
   try {
     await api(`/api/paragraphs/${paragraphId}`, {
       method: "PATCH",
