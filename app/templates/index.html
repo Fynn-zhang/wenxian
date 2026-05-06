@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SCI 论文精读工作台</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>SCI 论文精读工作台</h1>
+        <p id="statusLine">本机知识库 · 自动翻译 · 人工选择解释</p>
+      </div>
+      <div class="actions">
+        <button id="refreshBtn" title="刷新论文列表">刷新</button>
+        <button id="exportBtn" title="导出当前论文 Markdown" disabled>导出</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="sidebar">
+        <section class="panel">
+          <h2>导入 PDF</h2>
+          <form id="uploadForm">
+            <input id="paperTitle" name="title" type="text" placeholder="标题（可选）" />
+            <input id="paperFile" name="file" type="file" accept="application/pdf" />
+            <button type="submit">上传并导入</button>
+          </form>
+          <div class="existing-import">
+            <input id="existingPath" type="text" placeholder="现有 PDF 路径或文件名" />
+            <button id="importExistingBtn">导入现有文件</button>
+          </div>
+        </section>
+
+        <section class="paper-list" aria-label="论文列表">
+          <h2>论文</h2>
+          <div id="paperList"></div>
+        </section>
+      </aside>
+
+      <section class="reader">
+        <div class="reader-head">
+          <div>
+            <h2 id="paperTitleView">请选择论文</h2>
+            <p id="paperMeta">导入 PDF 后开始精读。</p>
+          </div>
+          <div class="actions">
+            <button id="translateBtn" disabled>翻译下一批</button>
+            <button id="saveSummaryBtn" disabled>保存摘要</button>
+          </div>
+        </div>
+
+        <section class="summary-band">
+          <textarea id="summaryInput" placeholder="论文级摘要"></textarea>
+          <textarea id="notesInput" placeholder="写作备注、可用论点、待核查问题和局限性"></textarea>
+        </section>
+
+        <section class="columns" aria-label="段落精读">
+          <div class="column">
+            <h3>原文</h3>
+            <div id="sourcePane" class="scroll-pane"></div>
+          </div>
+          <div class="column">
+            <h3>中文翻译</h3>
+            <div id="translationPane" class="scroll-pane"></div>
+          </div>
+          <div class="column">
+            <h3>解释</h3>
+            <div class="selection-tools">
+              <p id="selectionHint">在原文或译文中选中术语、句子或方法后生成解释。</p>
+              <button id="explainBtn" disabled>解释选中内容</button>
+            </div>
+            <div id="explanationEditor" class="explanation-editor hidden">
+              <input id="selectedTextInput" type="text" readonly />
+              <textarea id="explanationText" placeholder="解释草稿"></textarea>
+              <textarea id="uncertaintyText" placeholder="不确定性或证据限制"></textarea>
+              <div class="actions">
+                <button id="confirmExplanationBtn">确认解释</button>
+                <button id="discardExplanationBtn">丢弃</button>
+              </div>
+            </div>
+            <div id="explanationsPane" class="scroll-pane"></div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
