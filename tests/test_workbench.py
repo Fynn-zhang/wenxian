@@ -7,6 +7,7 @@ import fitz
 
 from app import db, exporter, mcp_server, pdf_import
 from app.config import BASE_DIR
+from app.main import TranslationUpdate, update_paragraph
 
 
 def run_dir() -> Path:
@@ -156,6 +157,39 @@ def test_export_markdown_only_includes_confirmed_explanations(monkeypatch) -> No
     assert "Summary" in text
     assert "Confirmed explanation" in text
     assert "Draft explanation" not in text
+
+
+def test_empty_translation_cannot_be_confirmed(monkeypatch) -> None:
+    configure_paths(monkeypatch, run_dir())
+    now = db.now_iso()
+    with db.get_db() as conn:
+        paper_id = conn.execute(
+            """
+            INSERT INTO papers (title, original_filename, stored_path, created_at)
+            VALUES ('Empty Translation Test', 'paper.pdf', 'papers/paper.pdf', ?)
+            """,
+            (now,),
+        ).lastrowid
+        paragraph_id = conn.execute(
+            """
+            INSERT INTO paragraphs (
+                paper_id, page_index, paragraph_index, source_text,
+                translation_text, translation_status, extraction_status, created_at, updated_at
+            )
+            VALUES (?, 1, 1, 'source text', '', 'pending', 'ok', ?, ?)
+            """,
+            (paper_id, now, now),
+        ).lastrowid
+
+    try:
+        update_paragraph(
+            paragraph_id,
+            TranslationUpdate(translation_text="  ", translation_status="confirmed"),
+        )
+    except Exception as exc:
+        assert "翻译内容为空" in str(exc.detail)
+    else:
+        raise AssertionError("Empty confirmed translations should be rejected.")
 
 
 def test_mcp_tools_read_search_confirm_and_export(monkeypatch) -> None:
