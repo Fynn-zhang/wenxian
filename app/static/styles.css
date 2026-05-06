@@ -192,7 +192,7 @@ form,
 }
 
 .reading-grid {
-  --reader-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(280px, 0.82fr);
+  --reader-columns: minmax(360px, 1.45fr) minmax(280px, 1fr) minmax(220px, 0.72fr);
   display: grid;
   grid-template-columns: var(--reader-columns);
   gap: 10px 12px;
@@ -333,7 +333,7 @@ form,
   }
 
   .reading-grid {
-    --reader-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(230px, 0.72fr);
+    --reader-columns: minmax(310px, 1.35fr) minmax(250px, 0.95fr) minmax(190px, 0.62fr);
   }
 
   .summary-band {
