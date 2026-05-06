@@ -56,6 +56,10 @@ function statusLabel(status) {
   return labels[status] || status;
 }
 
+function paragraphById(paragraphId) {
+  return currentPaper?.paragraphs.find((paragraph) => paragraph.id === paragraphId);
+}
+
 async function loadPapers() {
   const papers = await api("/api/papers");
   paperList.innerHTML = papers.length
@@ -129,7 +133,10 @@ function renderPaper() {
             </div>
             <div class="translation-box">
               <textarea data-translation-id="${p.id}">${escapeHtml(p.translation_text || "")}</textarea>
-              <button class="save-translation" data-paragraph-id="${p.id}">确认/保存翻译</button>
+              <div class="translation-actions">
+                <button class="save-translation" data-paragraph-id="${p.id}">确认/保存翻译</button>
+                <button class="restore-translation secondary" data-paragraph-id="${p.id}" type="button">恢复已保存翻译</button>
+              </div>
             </div>
           </section>
           <section class="reading-cell explanation-cell">
@@ -224,6 +231,17 @@ translateBtn.addEventListener("click", async () => {
 });
 
 readingRows.addEventListener("click", async (event) => {
+  const restoreButton = event.target.closest(".restore-translation");
+  if (restoreButton) {
+    const paragraphId = Number(restoreButton.dataset.paragraphId);
+    const textarea = readingRows.querySelector(`[data-translation-id="${paragraphId}"]`);
+    const paragraph = paragraphById(paragraphId);
+    if (!textarea || !paragraph) return;
+    textarea.value = paragraph.translation_text || "";
+    setStatus("已恢复为上次保存的翻译。");
+    return;
+  }
+
   const button = event.target.closest(".save-translation");
   if (!button) return;
   const paragraphId = Number(button.dataset.paragraphId);
