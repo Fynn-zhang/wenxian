@@ -56,32 +56,23 @@
           <textarea id="notesInput" placeholder="写作备注、可用论点、待核查问题和局限性"></textarea>
         </section>
 
-        <section class="columns" aria-label="段落精读">
-          <div class="column">
-            <h3>原文</h3>
-            <div id="sourcePane" class="scroll-pane"></div>
+        <section class="reading-grid" aria-label="段落精读">
+          <div class="grid-head">原文</div>
+          <div class="grid-head">中文翻译</div>
+          <div class="grid-head">
+            <span>解释</span>
+            <button id="explainBtn" disabled>解释选中内容</button>
           </div>
-          <div class="column">
-            <h3>中文翻译</h3>
-            <div id="translationPane" class="scroll-pane"></div>
-          </div>
-          <div class="column">
-            <h3>解释</h3>
-            <div class="selection-tools">
-              <p id="selectionHint">在原文或译文中选中术语、句子或方法后生成解释。</p>
-              <button id="explainBtn" disabled>解释选中内容</button>
+          <div id="explanationEditor" class="explanation-editor hidden">
+            <input id="selectedTextInput" type="text" readonly />
+            <textarea id="explanationText" placeholder="解释草稿"></textarea>
+            <textarea id="uncertaintyText" placeholder="不确定性或证据限制"></textarea>
+            <div class="actions">
+              <button id="confirmExplanationBtn">确认解释</button>
+              <button id="discardExplanationBtn">丢弃</button>
             </div>
-            <div id="explanationEditor" class="explanation-editor hidden">
-              <input id="selectedTextInput" type="text" readonly />
-              <textarea id="explanationText" placeholder="解释草稿"></textarea>
-              <textarea id="uncertaintyText" placeholder="不确定性或证据限制"></textarea>
-              <div class="actions">
-                <button id="confirmExplanationBtn">确认解释</button>
-                <button id="discardExplanationBtn">丢弃</button>
-              </div>
-            </div>
-            <div id="explanationsPane" class="scroll-pane"></div>
           </div>
+          <div id="readingRows" class="reading-rows"></div>
         </section>
       </section>
     </main>
