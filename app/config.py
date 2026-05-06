@@ -21,8 +21,12 @@ def _path_from_env(name: str, default: str) -> Path:
 DATABASE_PATH = _path_from_env("APP_DATABASE_PATH", "data/reading.db")
 PAPERS_DIR = _path_from_env("APP_PAPERS_DIR", "papers")
 EXPORTS_DIR = _path_from_env("APP_EXPORTS_DIR", "exports")
+AI_PROVIDER = os.getenv("AI_PROVIDER", "openai").strip().lower()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5.2")
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
+DEEPSEEK_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
+DEEPSEEK_BASE_URL = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
 
 
 def ensure_directories() -> None:
