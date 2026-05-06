@@ -110,7 +110,7 @@ textarea {
 }
 
 .panel,
-paper-item {
+.paper-item {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 8px;
