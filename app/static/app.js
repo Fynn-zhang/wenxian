@@ -7,9 +7,7 @@ const statusLine = document.querySelector("#statusLine");
 const paperList = document.querySelector("#paperList");
 const paperTitleView = document.querySelector("#paperTitleView");
 const paperMeta = document.querySelector("#paperMeta");
-const sourcePane = document.querySelector("#sourcePane");
-const translationPane = document.querySelector("#translationPane");
-const explanationsPane = document.querySelector("#explanationsPane");
+const readingRows = document.querySelector("#readingRows");
 const summaryInput = document.querySelector("#summaryInput");
 const notesInput = document.querySelector("#notesInput");
 const explainBtn = document.querySelector("#explainBtn");
@@ -83,6 +81,14 @@ async function loadPaper(paperId) {
 
 function renderPaper() {
   const { paper, paragraphs, explanations } = currentPaper;
+  const explanationsByParagraph = explanations.reduce((groups, explanation) => {
+    const key = explanation.paragraph_id || "unbound";
+    if (!groups[key]) {
+      groups[key] = [];
+    }
+    groups[key].push(explanation);
+    return groups;
+  }, {});
   paperTitleView.textContent = paper.title;
   paperMeta.textContent = `${paper.original_filename} · ${paragraphs.length} 段 · ${paper.status}`;
   summaryInput.value = paper.summary || "";
@@ -91,50 +97,49 @@ function renderPaper() {
   exportBtn.disabled = false;
   saveSummaryBtn.disabled = false;
 
-  sourcePane.innerHTML = paragraphs
-    .map(
-      (p) => `
-        <article class="paragraph" data-paragraph-id="${p.id}">
-          <div class="locator">段落 ${p.paragraph_index} · PDF第${p.page_index}页</div>
-          <div class="source-text">${escapeHtml(p.source_text)}</div>
+  readingRows.innerHTML = paragraphs
+    .map((p) => {
+      const rowExplanations = explanationsByParagraph[p.id] || [];
+      const explanationHtml = rowExplanations.length
+        ? rowExplanations
+            .map(
+              (e) => `
+                <article class="explanation-item">
+                  <div class="locator">${escapeHtml(e.status)} · ${escapeHtml(e.selected_text)}</div>
+                  <div class="explanation-text">${escapeHtml(e.explanation_text)}</div>
+                  ${
+                    e.uncertainty
+                      ? `<p class="tag">不确定性：${escapeHtml(e.uncertainty)}</p>`
+                      : ""
+                  }
+                </article>
+              `,
+            )
+            .join("")
+        : '<p class="empty">选中本段术语或句子后生成解释。</p>';
+      return `
+        <article class="reading-row">
+          <section class="reading-cell source-cell" data-paragraph-id="${p.id}">
+            <div class="locator">段落 ${p.paragraph_index} · PDF第${p.page_index}页</div>
+            <div class="source-text">${escapeHtml(p.source_text)}</div>
+          </section>
+          <section class="reading-cell translation-cell" data-paragraph-id="${p.id}">
+            <div class="locator">
+              段落 ${p.paragraph_index} · <span class="status ${p.translation_status}">${statusLabel(p.translation_status)}</span>
+            </div>
+            <div class="translation-box">
+              <textarea data-translation-id="${p.id}">${escapeHtml(p.translation_text || "")}</textarea>
+              <button class="save-translation" data-paragraph-id="${p.id}">确认/保存翻译</button>
+            </div>
+          </section>
+          <section class="reading-cell explanation-cell">
+            <div class="locator">段落 ${p.paragraph_index} · 解释</div>
+            ${explanationHtml}
+          </section>
         </article>
-      `,
-    )
+      `;
+    })
     .join("");
-
-  translationPane.innerHTML = paragraphs
-    .map(
-      (p) => `
-        <article class="paragraph" data-paragraph-id="${p.id}">
-          <div class="locator">
-            段落 ${p.paragraph_index} · <span class="status ${p.translation_status}">${statusLabel(p.translation_status)}</span>
-          </div>
-          <div class="translation-box">
-            <textarea data-translation-id="${p.id}">${escapeHtml(p.translation_text || "")}</textarea>
-            <button class="save-translation" data-paragraph-id="${p.id}">确认/保存翻译</button>
-          </div>
-        </article>
-      `,
-    )
-    .join("");
-
-  explanationsPane.innerHTML = explanations.length
-    ? explanations
-        .map(
-          (e) => `
-            <article class="explanation-item">
-              <div class="locator">${escapeHtml(e.status)} · ${escapeHtml(e.selected_text)}</div>
-              <div class="explanation-text">${escapeHtml(e.explanation_text)}</div>
-              ${
-                e.uncertainty
-                  ? `<p class="tag">不确定性：${escapeHtml(e.uncertainty)}</p>`
-                  : ""
-              }
-            </article>
-          `,
-        )
-        .join("")
-    : '<p class="empty">暂无解释。选中文本后生成，并确认保存。</p>';
 }
 
 function getSelectionContext() {
@@ -218,11 +223,11 @@ translateBtn.addEventListener("click", async () => {
   }
 });
 
-translationPane.addEventListener("click", async (event) => {
+readingRows.addEventListener("click", async (event) => {
   const button = event.target.closest(".save-translation");
   if (!button) return;
   const paragraphId = Number(button.dataset.paragraphId);
-  const textarea = translationPane.querySelector(`[data-translation-id="${paragraphId}"]`);
+  const textarea = readingRows.querySelector(`[data-translation-id="${paragraphId}"]`);
   try {
     await api(`/api/paragraphs/${paragraphId}`, {
       method: "PATCH",
